@@ -1,3 +1,8 @@
+BASE_URL = "https://airtable.com"
+BASE_API_URL = "https://api.airtable.com/v0"
+WORKSPACE_ID = "wsphJ8iveDIazmRjj"
+SOURCE_ID = "appAZddmNYImc3Bxx"
+SOURCE_TABLE = "tblbuSCqj6oR6vdTx"
 TABLES = [
     {
         "description": "Baseline tasks for an Epic",

@@ -4,8 +4,7 @@ import requests
 from dotenv import load_dotenv
 import os
 from typing import List
-from app.constants import TABLES
-
+from app.constants import TABLES, BASE_API_URL, BASE_URL, WORKSPACE_ID, SOURCE_ID, SOURCE_TABLE
 
 app = FastAPI()
 logging.basicConfig(level=logging.INFO)
@@ -14,9 +13,6 @@ logging.basicConfig(level=logging.INFO)
 load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
-WORKSPACE_ID = os.getenv("WORKSPACE_ID")
-SOURCE_ID = os.getenv("SOURCE_BASE_ID")
-SOURCE_TABLE = os.getenv("SOURCE_TABLE")
 
 headers = {
     'Authorization': f'Bearer {API_KEY}',
@@ -31,7 +27,7 @@ def create_base(project_name: str):
         "workspaceId": f"{WORKSPACE_ID}",
         "tables": TABLES
     }
-    url = f'https://api.airtable.com/v0/meta/bases/'
+    url = f'{BASE_API_URL}/meta/bases/'
     response = requests.post(url, json=data, headers=headers)
     if response.status_code == 200:
         resp = response.json();
@@ -47,7 +43,7 @@ def create_base(project_name: str):
 
 # Get records from Airtable
 def get_records(base_id: str, table_name: str):
-    url = f'https://api.airtable.com/v0/{base_id}/{table_name}'
+    url = f'{BASE_API_URL}/{base_id}/{table_name}'
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         return response.json().get('records', [])
@@ -79,7 +75,7 @@ def copy_records(dest_base_id: str, dest_table: str):
 
 def send_batch(dest_base_id: str, dest_table: str, batch: List[dict]):
     data = {"records": batch}
-    url = f'https://api.airtable.com/v0/{dest_base_id}/{dest_table}'
+    url = f'{BASE_API_URL}/{dest_base_id}/{dest_table}'
     response = requests.post(url, json=data, headers=headers)
 
     if response.status_code != 200:
@@ -104,7 +100,7 @@ def create_endpoint(project_name: str = Query(..., description="Name of the proj
         copy_records(base_id, table_id)
 
         # return the new base url
-        return {"url": f"https://airtable.com/{base_id}/{table_id}/"}
+        return {"url": f"{BASE_URL}/{base_id}/{table_id}/"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
