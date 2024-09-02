@@ -1,8 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 
-# Define Pydantic models for schema components
-# Define Pydantic models for schema components
 class Choice(BaseModel):
     name: str
     color: str

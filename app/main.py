@@ -3,6 +3,8 @@ from fastapi import FastAPI, HTTPException, Query
 import requests
 from dotenv import load_dotenv
 import os
+from typing import List
+
 
 app = FastAPI()
 logging.basicConfig(level=logging.INFO)
@@ -233,22 +235,37 @@ def get_records(base_id: str, table_name: str):
         return []
 
 
-# Function to copy records from one base to another
+# Function to copy records from one base to another using batch processing
 def copy_records(dest_base_id: str, dest_table: str):
     records = get_records(SOURCE_ID, SOURCE_TABLE)
     sorted_records = sorted(records, key=lambda x: x['fields'].get('Sort', 0))
+
+    batch_size = 10
+    batch = []
+
     for record in sorted_records:
-        data = {
-            "records": [
-                {
-                    "fields": record['fields']
-                }
-            ]
-        }
-        url = f'https://api.airtable.com/v0/{dest_base_id}/{dest_table}'
-        response = requests.post(url, json=data, headers=headers)
-        if response.status_code != 200:
-            print(f"Error copying record: {response.status_code}, {response.text}")
+        batch.append({"fields": record['fields']})
+
+        # Check if batch size limit reached
+        if len(batch) == batch_size:
+            send_batch(dest_base_id, dest_table, batch)
+            batch = []
+
+    # Send any remaining records in the batch
+    if batch:
+        send_batch(dest_base_id, dest_table, batch)
+
+
+def send_batch(dest_base_id: str, dest_table: str, batch: List[dict]):
+    data = {"records": batch}
+    url = f'https://api.airtable.com/v0/{dest_base_id}/{dest_table}'
+    response = requests.post(url, json=data, headers=headers)
+
+    if response.status_code != 200:
+        logging.error(f"Error copying batch: {response.status_code}, {response.text}")
+    else:
+        logging.info(f"Successfully copied batch of {len(batch)} records")
+
 
 
 # Endpoint to create a new AirTable
