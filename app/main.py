@@ -4,7 +4,7 @@ import requests
 from dotenv import load_dotenv
 import os
 from typing import List
-from constants import TABLES
+from app.constants import TABLES
 
 
 app = FastAPI()
